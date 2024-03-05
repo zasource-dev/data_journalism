@@ -1,0 +1,66 @@
+<!-- livebook:{"persist_outputs":true} -->
+
+# Data Journalism | SA Political Data Donors
+
+```elixir
+Mix.install([
+  {:explorer, "~> 0.8.1"},
+  {:kino, "~> 0.12.3"},
+  {:kino_vega_lite, "~> 0.1.11"},
+  {:kino_explorer, "~> 0.1.18"}
+])
+```
+
+## Load Data
+
+```elixir
+file_input = Kino.Input.file("Upload a CSV: ")
+```
+
+```elixir
+alias Explorer.Series
+alias Explorer.DataFrame
+
+data_path = Kino.Input.read(file_input)
+csv_path = Kino.Input.file_path(data_path.file_ref)
+
+df_sa_party_donors = Explorer.DataFrame.from_csv!(csv_path)
+```
+
+<!-- livebook:{"output":true} -->
+
+```text
+#Explorer.DataFrame<
+  Polars[212 x 9]
+  Party Name string ["ACTIONSA", "ACTIONSA", "ACTIONSA", "ACTIONSA", "AFRICAN NATIONAL CONGRESS", ...]
+  Date(s) of Receipt(s) of Donation string ["2021-06-09", "2021-05-11", "2021-05-03", "2021-04-26", "2021-05-24", ...]
+  Month string ["2021-06", "2021-05", "2021-05", "2021-04", "2021-05", ...]
+  Donor Name string ["MARTIN MOSHAL", "STYLE EYES OF CALIFORNIA (PTY) LTD", "BLACK LIKE ME (PTY) LTD", "BRAHMAN HILLS PROPRIETARY LIMITED", "MAJESTIC SILVER TRADING 40 (PTY) LTD", ...]
+  Donor Name (from IEC) string ["MARTIN MOSHAL", "STYLE EYES OF CALIFORNIA (PTY) LTD", "BLACK LIKE ME (PTY) LTD", "BRAHMAN HILLS PROPRIETARY LIMITED", "MAJESTIC SILVER TRADING 40 (PTY) LTD", ...]
+  Donation Type string ["MONETARY", "IN-KIND", "IN-KIND", "MONETARY", "MONETARY", ...]
+  Amount f64 [2.5e6, 3.336e5, 121490.26, 3.5e5, 2.5e6, ...]
+  Year string ["2021/2022", "2021/2022", "2021/2022", "2021/2022", "2021/2022", ...]
+  Quarter string ["Apr-Jun", "Apr-Jun", "Apr-Jun", "Apr-Jun", "Apr-Jun", ...]
+>
+```
+
+<!-- livebook:{"attrs":{"assign_to":null,"collect":false,"data_frame":"df_sa_party_donors","data_frame_alias":"Elixir.DataFrame","is_data_frame":true,"missing_require":"Elixir.Explorer.DataFrame","operations":[{"active":true,"columns":["Party Name"],"data_options":{"Amount":"float","Date(s) of Receipt(s) of Donation":"string","Donation Type":"string","Donor Name":"string","Donor Name (from IEC)":"string","Month":"string","Party Name":"string","Quarter":"string","Year":"string"},"operation_type":"group_by"},{"active":true,"columns":["Amount"],"data_options":{"Amount":"float","Date(s) of Receipt(s) of Donation":"string","Donation Type":"string","Donor Name":"string","Donor Name (from IEC)":"string","Month":"string","Party Name":"string","Quarter":"string","Year":"string"},"operation_type":"summarise","query":"sum"}]},"chunks":null,"kind":"Elixir.KinoExplorer.DataTransformCell","livebook_object":"smart_cell"} -->
+
+```elixir
+require Explorer.DataFrame
+
+df_sa_party_donors
+|> DataFrame.lazy()
+|> DataFrame.group_by("Party Name")
+|> DataFrame.summarise(Amount_sum: sum(col("Amount")))
+```
+
+<!-- livebook:{"output":true} -->
+
+```text
+#Explorer.DataFrame<
+  LazyPolars[??? x 2]
+  Party Name string ["ACTIONSA", "AFRICAN NATIONAL CONGRESS", "DEMOCRATIC ALLIANCE", "ABANTU INTEGRITY MOVEMENT", "AFRICAN CHRISTIAN DEMOCRATIC PARTY", ...]
+  Amount_sum f64 [25120822.759999998, 33339969.0, 32850758.91, 212386.03999999998, 2.35e5, ...]
+>
+```
